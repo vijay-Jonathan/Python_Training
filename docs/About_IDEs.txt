@@ -1,0 +1,10 @@
+To write a python program, We can use
+----------------
+OPTION - 1: Any editor like notepad/notepad++, save with .py extension and execute from command prompt
+
+OPTION - 2: Use any IDEs like 
+		a) IDLE (When we install python, it installs small IDE called IDLE)
+		b) Pycharm IDE (Manually need to download and install)
+		c) Jupyter notebook, spyder, eclipse and many more IDEs are avaiable
+
+Finally, It is our choice to use IDEs which is easy for us.

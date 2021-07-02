@@ -1,0 +1,24 @@
+Python Programming Language
+-----------------------------
+- Python also one of the programming language like C, C++, Java, Perl, Ruby Etc
+- Python is one of OBJECT ORIENTED PROGRAMMING LANGUAGE like C++, Java etc
+
+WHY PYTHON?
+- Open Source(Not required to buy any license) --> But still we have Java and other languages
+- Easy to Learn -- Compare to other language like Java
+- Readibility of code is more-- i.e, While coding, we can't mess the code in a file (Expects format)
+
+Since it is "Easy to Learn" and "Readibility of code is more", because of this do we need to use python?????
+
+NO NO???
+
+Then WHY PYTHON?
+We have more and more already avaiable code (Called as libraries).
+Since, we have more and more libraries in python, Python is more popular
+
+Now, Advantage will be we can make use of existing code for our project.
+
+
+Popularity of Python Programming Language
+https://www.tiobe.com/tiobe-index/
+
