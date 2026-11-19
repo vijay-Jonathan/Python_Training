@@ -1,0 +1,35 @@
+[project]
+name = "generated-app-backend"
+version = "0.1.0"
+description = "Generated application backend"
+requires-python = ">=3.12,<3.13"
+
+# Pinned exactly and resolved in uv.lock, so a workspace copy installs what was verified.
+dependencies = [
+    # Pydantic EmailStr imports this optional dependency when defining a model.
+    "email-validator==2.3.0",
+    "fastapi==0.141.1",
+    "uvicorn[standard]==0.52.4",
+    "pydantic-settings==2.15.0",
+    # Postgres driver, used only when DATABASE_URL is set; SQLite needs nothing.
+    "psycopg[binary]==3.2.12",
+]
+
+# A dependency group, not an optional extra: uv installs this by default, so `uv run`
+# cannot quietly prune the test tooling the way it does with extras.
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "httpx==0.28.1",
+]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

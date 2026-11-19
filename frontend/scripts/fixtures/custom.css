@@ -1,0 +1,42 @@
+[data-design-mode="custom"] { --bg: #f5f0e5; --text: #263c2c; --accent: #3c5a3c; --font-sans: Arial, sans-serif; }
+[data-design-mode="custom"] button { font: inherit; cursor: pointer; border: 1px solid currentColor; padding: 10px 20px; background: transparent; color: inherit; }
+[data-design-mode="custom"] nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 5vw; border-bottom: 1px solid #263c2c33; }
+[data-design-mode="custom"] nav div { display: flex; gap: 28px; }
+[data-design-mode="custom"] a { color: inherit; }
+[data-design-mode="custom"] .harvest-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 560px; }
+[data-design-mode="custom"] .harvest-hero > div:first-child { padding: 70px 5vw; }
+[data-design-mode="custom"] h1 { font: 400 clamp(42px, 5vw, 76px)/1.04 Georgia, serif; letter-spacing: -0.045em; margin: 28px 0; }
+[data-design-mode="custom"] .harvest-hero p { line-height: 1.6; }
+[data-design-mode="custom"] .harvest-cta { display: inline-block; margin-top: 30px; padding: 15px 24px; background: #263c2c; color: #fff; }
+[data-design-mode="custom"] .harvest-art { background: #e6bc76; display: grid; place-content: center; gap: 28px; text-align: center; }
+[data-design-mode="custom"] .egg { width: 220px; height: 290px; margin: auto; border-radius: 50% 50% 45% 45%; background: radial-gradient(at 35% 30%, #fff6dc, #ba8548); box-shadow: 20px 30px 40px #80501b44; transform: rotate(15deg); }
+[data-design-mode="custom"] #harvest { padding: 56px 5vw; }
+[data-design-mode="custom"] h2 { font: 400 36px/1.2 Georgia, serif; margin: 16px 0; }
+[data-design-mode="custom"] .filter { display: flex; gap: 12px; margin: 24px 0; }
+[data-design-mode="custom"] button[aria-pressed="true"] { background: #263c2c; color: white; }
+[data-design-mode="custom"] .products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+[data-design-mode="custom"] .products article { border-top: 1px solid currentColor; padding: 24px 0; }
+[data-design-mode="custom"] h3 { font: 400 25px/1.3 Georgia, serif; margin: 20px 0 12px; }
+[data-design-mode="custom"] .products a { display: inline-block; margin-top: 24px; }
+[data-design-mode="custom"] footer { padding: 24px 5vw; border-top: 1px solid #263c2c33; }
+[data-design-mode="custom"] .operations { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; background: #f2f4f6; color: #23303a; }
+[data-design-mode="custom"] .operations aside { padding: 32px 20px; background: #243540; color: white; }
+[data-design-mode="custom"] .operations nav { flex-direction: column; align-items: start; padding: 35px 0; }
+[data-design-mode="custom"] .operations > section { padding: 50px 5vw; }
+[data-design-mode="custom"] .operations h1 { font-family: Arial, sans-serif; font-size: 40px; letter-spacing: -0.03em; }
+[data-design-mode="custom"] .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 40px 0; }
+[data-design-mode="custom"] .metrics article { padding: 24px; background: white; border: 1px solid #d8dfe3; }
+[data-design-mode="custom"] .metrics strong { display: block; font-size: 40px; margin-top: 20px; }
+[data-design-mode="custom"] .queue article { display: flex; gap: 24px; padding: 24px 0; border-top: 1px solid #cbd3d9; }
+[data-design-mode="custom"] .queue article strong { flex: 1; }
+@media (max-width: 700px) {
+  [data-design-mode="custom"] nav { flex-wrap: wrap; gap: 14px; }
+  [data-design-mode="custom"] nav div { order: 3; width: 100%; font-size: 14px; }
+  [data-design-mode="custom"] .harvest-hero, [data-design-mode="custom"] .products, [data-design-mode="custom"] .operations { grid-template-columns: 1fr; }
+  [data-design-mode="custom"] .harvest-hero > div:first-child { padding: 36px 5vw; }
+  [data-design-mode="custom"] .harvest-art { padding: 42px; }
+  [data-design-mode="custom"] .operations nav { flex-direction: row; padding: 20px 0 0; }
+  [data-design-mode="custom"] .metrics { grid-template-columns: 1fr; gap: 12px; }
+  [data-design-mode="custom"] .metrics strong { margin: 8px 0 0; }
+  [data-design-mode="custom"] .queue article { flex-wrap: wrap; gap: 12px; }
+}

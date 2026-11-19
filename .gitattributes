@@ -1,0 +1,8 @@
+# Self-contained, like the .gitignore beside it: a copy of this template lives outside the
+# Labs repository, where the root .gitattributes does not apply.
+#
+# Normalise line endings to LF everywhere, so a workspace checkpointed on Windows and one
+# checkpointed on Linux produce byte-identical commits. Without this, restoring a
+# checkpoint rewrites every file's line endings and the diff between two versions is the
+# whole tree.
+* text=auto eol=lf

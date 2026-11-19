@@ -1,0 +1,23 @@
+# Self-contained on purpose. A copy of this template lives outside the Labs repository,
+# where the root .gitignore does not apply, so everything a build produces has to be
+# listed here — otherwise the first checkpoint of a workspace commits node_modules.
+
+# Frontend
+node_modules/
+dist/
+
+# Backend
+.venv/
+data/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Environment — examples are committed, real values never are
+.env
+.env.*
+!.env.example
+
+*.local

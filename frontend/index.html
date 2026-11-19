@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- data-palette is the application's accent, read by src/ui/useTheme.ts. Set
+     here so the first paint is already the right colour; it can also be set
+     from React with <AppShell palette="…">. -->
+<html lang="en" data-palette="indigo">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Inter, the typeface tokens.css asks for first. Loaded as a variable
+         font so every weight the design system uses costs one request, and
+         with display=swap so the system stack renders immediately if the
+         network is slow or absent. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap"
+    />
+    <title>Generated Application</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

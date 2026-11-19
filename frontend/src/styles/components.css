@@ -1,0 +1,4077 @@
+/**
+ * The component layer: every class an application screen needs, pre-written.
+ *
+ * Interaction is baked in here rather than left to each component — hover
+ * lifts, press feedback, focus rings and entrance animations are properties of
+ * the class, so applying `.btn` or `.card` is enough to get a surface that
+ * responds. Nothing below reads a raw colour; every value comes from
+ * tokens.css, so both themes are satisfied by one declaration.
+ */
+
+/* ══ Base ═════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text);
+  background-color: var(--bg);
+  background-image: var(--bg-tint);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Inter's own refinements: contextual alternates and proper optical sizing,
+     plus lining figures so a column of numbers lines up without each table
+     asking for it. */
+  font-feature-settings: "cv05" 1, "cv11" 1, "ss01" 1;
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: var(--leading-tight);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  text-wrap: balance;
+}
+
+/* A paragraph reads better broken on sense than on the last word fitting. */
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--accent-text);
+  text-decoration: none;
+  transition: color var(--d-fast) var(--ease);
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+code,
+pre,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.925em;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One focus ring for the whole application, and only for keyboard users. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-subtle);
+  background-clip: content-box;
+}
+
+/* ══ Layout ═══════════════════════════════════════════════════════════════ */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+}
+
+.app-shell.no-sidebar {
+  grid-template-columns: 1fr;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4);
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--display-weight);
+  letter-spacing: -0.02em;
+}
+
+.sidebar-mark {
+  display: grid;
+  place-items: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  flex: none;
+  border-radius: var(--radius);
+  background: linear-gradient(140deg, var(--accent), var(--accent-active));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-section {
+  padding: var(--space-2) var(--space-2) var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-subtle);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: var(--weight-medium);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease);
+}
+
+.nav-item:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* The current screen is marked twice — a wash and a rail down its left edge —
+   so the sidebar reads at a glance rather than on inspection. */
+.nav-item[aria-current="page"],
+.nav-item.active {
+  position: relative;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: var(--weight-semibold);
+}
+
+.nav-item[aria-current="page"]::before,
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: var(--accent);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--topbar-h);
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: var(--sheen);
+}
+
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.content {
+  padding: var(--space-6) var(--space-5) var(--space-8);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.container.narrow {
+  max-width: 44rem;
+}
+
+/* Page header: the title block every screen opens with. */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+/* Breadcrumbs or other leading content — the slot <PageHeader> children
+   take. It wraps to its own row above the title, so the two-child header of
+   before is untouched. */
+.page-header-crumbs {
+  flex-basis: 100%;
+  margin-bottom: calc(-1 * var(--space-2));
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  /* One step heavier than the heading set — semibold's default lands on the
+     bold this title always had, and a preset's display weight shifts it too. */
+  font-weight: calc(var(--display-weight) + 100);
+  letter-spacing: var(--tracking-tighter);
+}
+
+.page-subtitle {
+  max-width: 65ch;
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-md);
+}
+
+.page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex: none;
+}
+
+/* The header as a surface of its own — for the dashboard's top screen or a
+   section's front page. A gradient of the theme's ground, an accent glow in
+   the corner, and a sheen along the top edge. */
+.page-header-banner {
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      40rem 18rem at 88% -20%,
+      color-mix(in srgb, var(--accent) 18%, transparent) 0%,
+      transparent 65%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--accent) 7%, var(--surface)),
+      var(--surface) 62%
+    );
+  box-shadow: var(--shadow-md), var(--sheen);
+}
+
+.page-header-banner .eyebrow {
+  margin-bottom: var(--space-1);
+}
+
+/* A photograph behind the banner, set by <PageHeader image="…">. The scrim
+   is mixed from the theme's own ground — the same contract .hero-photo and
+   .band-image keep — so the title stays readable in both themes. */
+.page-header-photo {
+  background-image:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--bg) 94%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 74%, transparent) 50%,
+      color-mix(in srgb, var(--bg) 30%, transparent) 100%
+    ),
+    var(--page-header-image);
+  background-size: cover;
+  background-position: center;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+}
+
+/* A titled band inside a screen: heading on the left, actions on the right,
+   with a rule carrying the eye across the gap between them. Put a
+   .section-title (and optionally a .muted line) in the first child. */
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.section-head > :first-child {
+  min-width: 0;
+}
+
+.section-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  margin-bottom: 0.45rem;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+.section-head > :last-child:not(:first-child) {
+  flex: none;
+  margin-bottom: 0.1rem;
+}
+
+/* A small capitalised line above a heading — a category, a stage, a claim. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+/* ── Primitive layout helpers ─────────────────────────────────────────────── */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stack-lg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.row-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Auto-fitting card grid: the default way to lay out a collection. */
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.grid-2 {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+/* A row of metric tiles. Narrower track than .grid, because a <Stat> is a
+   number and a word rather than a card. */
+.grid-metrics {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+/* The dashboard stat row: an even tighter auto-fit than .grid-metrics, for a
+   strip of four or five tiles that should fill any width. */
+.stat-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr));
+}
+
+/* The asymmetric split a detail screen wants: the subject on the left, a
+   sidebar of facts on the right, stacking on a narrow viewport. */
+.split {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+/* Opt-in compositions retain DOM reading order and reuse existing cards. */
+.split.split-even {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid.grid-featured {
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+@media (max-width: 60rem) {
+  .split,
+  .split.split-even,
+  .grid.grid-featured {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A full-bleed band that breaks the page into sections — the alternating
+   stripe a marketing page is built from. Put a .container inside it. */
+.band {
+  position: relative;
+  padding: calc(var(--space-8) + var(--space-4)) var(--space-5);
+}
+
+.band-tint {
+  background: var(--surface-sunken);
+  border-block: 1px solid var(--border);
+}
+
+.band-accent {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--accent) 10%, var(--surface)),
+    var(--surface) 70%
+  );
+  border-block: 1px solid var(--border);
+}
+
+/* ── Section backdrops ────────────────────────────────────────────────────
+   Textures and treatments that combine with .band — generated, so they cost
+   no request and cannot 404. The textured ones paint in a pseudo-layer under
+   the content, so they can sit over .band-tint or .band-accent without
+   covering the band's own background or its children. */
+.band-grid::before,
+.band-dots::before,
+.band-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.band-grid > *,
+.band-dots > *,
+.band-glow > * {
+  position: relative;
+}
+
+/* Graph-paper lines, faded toward the edges so the stripe reads as textured
+   rather than ruled. */
+.band-grid::before {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--text) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--text) 5%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(80% 100% at 50% 0%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(80% 100% at 50% 0%, black 30%, transparent 100%);
+}
+
+/* A dot texture, the quieter sibling of the grid. */
+.band-dots::before {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--text) 14%, transparent) 1px,
+    transparent 1.5px
+  );
+  background-size: 20px 20px;
+  mask-image: radial-gradient(80% 100% at 50% 0%, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(80% 100% at 50% 0%, black 40%, transparent 100%);
+}
+
+/* Two accent glows drifting in opposite corners — the ambient light a plain
+   stripe is missing. */
+.band-glow::before {
+  background-image:
+    radial-gradient(
+      36rem 22rem at 12% 0%,
+      color-mix(in srgb, var(--accent) 16%, transparent) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      30rem 20rem at 88% 100%,
+      color-mix(in srgb, var(--accent-2) 14%, transparent) 0%,
+      transparent 60%
+    );
+}
+
+/* An inverted stripe: the page's own text colour as the ground, so it is a
+   strong contrast in either theme and still belongs to the palette. */
+.band-dark {
+  background: var(--text);
+  color: var(--bg);
+  border-block: 1px solid var(--text);
+}
+
+.band-dark .muted,
+.band-dark .subtle {
+  color: color-mix(in srgb, var(--bg) 74%, transparent);
+}
+
+.band-dark .eyebrow {
+  color: color-mix(in srgb, var(--accent-text) 60%, var(--bg));
+}
+
+.band-dark .section-head::after {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 30%, transparent), transparent);
+}
+
+.band-dark .divider {
+  background: color-mix(in srgb, var(--bg) 24%, transparent);
+}
+
+/* A photograph under the theme's own scrim — the same contract the landing
+   hero holds, for the one band per page that earns it. Driven by
+   --band-image, set by <Band image="…"> or by hand. */
+.band-image {
+  background-color: var(--surface-sunken);
+  background-image:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--bg) 94%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 72%, transparent) 48%,
+      color-mix(in srgb, var(--bg) 34%, transparent) 100%
+    ),
+    var(--band-image);
+  background-size: cover;
+  background-position: center;
+}
+
+/* The decorative mark <Band icon={…}> leaves in the stripe's corner — a
+   watermark, not an element to read. */
+.band-icon {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.divider {
+  height: 1px;
+  border: none;
+  margin: 0;
+  background: var(--border);
+}
+
+/* ── Text helpers ─────────────────────────────────────────────────────────── */
+
+.muted {
+  color: var(--text-muted);
+}
+
+.subtle {
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ══ Buttons ══════════════════════════════════════════════════════════════ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  height: 2.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease),
+    box-shadow var(--d-fast) var(--ease),
+    transform var(--d-fast) var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--text-subtle);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Press feedback lives in CSS so it survives on any element. */
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* The primary action is the one thing on a screen that is lit: a gradient
+   rather than a flat fill, a hairline of light along its top edge, and a
+   shadow cast in the accent's own colour instead of grey. */
+.btn-primary {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 88%, white),
+    var(--accent)
+  );
+  background-color: var(--accent);
+  border-color: transparent;
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-accent), var(--sheen);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-hover) 88%, white),
+    var(--accent-hover)
+  );
+  background-color: var(--accent-hover);
+  border-color: transparent;
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-accent-lg), var(--sheen);
+}
+
+.btn-primary:active:not(:disabled) {
+  background-image: none;
+  background-color: var(--accent-active);
+  box-shadow: var(--shadow-accent);
+}
+
+/* An outline button is the quiet half of a pair of actions; on hover it picks
+   up the accent rather than only a darker border. */
+.btn-outline:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: transparent;
+  color: var(--text);
+  box-shadow: none;
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: transparent;
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-hover);
+  border-color: transparent;
+  color: #fff;
+}
+
+.btn-sm {
+  height: 1.875rem;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.btn-lg {
+  height: 2.75rem;
+  padding: 0 var(--space-5);
+  font-size: var(--text-md);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* A Button carrying an icon and no label, set by the component. Even padding,
+   so the mark sits centred instead of adrift in label-width padding. */
+.btn-icon-only {
+  padding: 0;
+  width: 2.25rem;
+}
+
+.btn-icon-only.btn-sm {
+  width: 1.875rem;
+}
+
+.btn-icon-only.btn-lg {
+  width: 2.75rem;
+}
+
+/* A square button that holds nothing but an icon. */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease);
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tones and sizes, so IconButton speaks the same vocabulary as Button. The
+   default is the bare ghost above. */
+.icon-btn-outline {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.icon-btn-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--text-inverse);
+}
+
+.icon-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  color: var(--text-inverse);
+}
+
+.icon-btn-danger {
+  color: var(--danger);
+}
+
+.icon-btn-danger:hover:not(:disabled) {
+  background: var(--danger);
+  color: #fff;
+}
+
+.icon-btn-sm {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+
+.icon-btn-lg {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.btn-spin {
+  width: 0.875em;
+  height: 0.875em;
+  flex: none;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0.75;
+  animation: spin 600ms linear infinite;
+}
+
+/* ══ Cards ════════════════════════════════════════════════════════════════ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  /* A hairline of light along the top edge — the sheen is what separates a
+     raised surface from a flat one. */
+  box-shadow: var(--shadow-sm), var(--sheen);
+  overflow: hidden;
+  transition:
+    border-color var(--d) var(--ease),
+    box-shadow var(--d) var(--ease),
+    transform var(--d) var(--ease);
+}
+
+/* Opt-in lift, so a static panel does not wobble under the cursor. */
+.card-interactive {
+  cursor: pointer;
+  text-align: left;
+}
+
+.card-interactive:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-lg), var(--shadow-accent);
+  transform: translateY(-3px);
+}
+
+/* A hairline of the accent runs along the top of a hovered card, so the lift
+   is confirmed by colour and not only by shadow. */
+.card-interactive::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  opacity: 0;
+  transition: opacity var(--d) var(--ease);
+}
+
+.card-interactive {
+  position: relative;
+}
+
+.card-interactive:hover::before {
+  opacity: 1;
+}
+
+.card-interactive:active {
+  transform: translateY(-1px);
+}
+
+/* A photo edge-to-edge at the top of the card, above the body — put
+   .card-media on the RemoteImage. The frame keeps its ratio and the photo
+   tightens slightly under the card's hover. */
+.card-media {
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
+}
+
+.card-interactive:hover .card-media img {
+  transform: scale(1.045);
+}
+
+/* The card a row points at — a plan to choose, a feature to highlight.
+   Washed gently toward the accent rather than ringed hard. */
+.card-feature {
+  border-color: var(--accent-border);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--accent) 8%, var(--surface)),
+    var(--surface) 60%
+  );
+  box-shadow: var(--shadow-md), var(--sheen);
+}
+
+.card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-sunken) 60%, var(--surface)),
+    var(--surface)
+  );
+}
+
+.card-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: var(--leading-tight);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card-body.tight {
+  padding: var(--space-4);
+  gap: var(--space-2);
+}
+
+.card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border);
+  background: var(--surface-sunken);
+}
+
+/* A single headline number with its label — the metric tile. A wash of the
+   accent in one corner keeps a row of them from reading as empty boxes. */
+.stat {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      120% 80% at 100% 0%,
+      color-mix(in srgb, var(--accent) 8%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* A tile that drills into something, set by Stat when given a click handler. */
+.stat-interactive {
+  cursor: pointer;
+  transition:
+    box-shadow var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease),
+    transform var(--d-fast) var(--ease);
+}
+
+.stat-interactive:hover {
+  box-shadow: var(--shadow-md), var(--shadow-accent);
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+}
+
+.stat-value {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: calc(var(--display-weight) + 100);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-delta {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+}
+
+.stat-delta.up {
+  color: var(--success);
+}
+
+.stat-delta.down {
+  color: var(--danger);
+}
+
+/* The mark in a soft chip at the tile's corner, from <Stat icon={…}>. */
+.stat-icon {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/* The tones a Stat can lean toward — the chip and the corner wash follow. */
+.stat-success {
+  background:
+    radial-gradient(
+      120% 80% at 100% 0%,
+      color-mix(in srgb, var(--success) 10%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--surface);
+}
+
+.stat-success .stat-icon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.stat-warning {
+  background:
+    radial-gradient(
+      120% 80% at 100% 0%,
+      color-mix(in srgb, var(--warning) 12%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--surface);
+}
+
+.stat-warning .stat-icon {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.stat-danger {
+  background:
+    radial-gradient(
+      120% 80% at 100% 0%,
+      color-mix(in srgb, var(--danger) 10%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--surface);
+}
+
+.stat-danger .stat-icon {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ══ Forms ════════════════════════════════════════════════════════════════ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+
+.field-hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--danger);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 0 var(--space-3);
+  height: 2.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  transition:
+    border-color var(--d-fast) var(--ease),
+    box-shadow var(--d-fast) var(--ease),
+    background var(--d-fast) var(--ease);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-subtle);
+}
+
+.input:hover:not(:disabled),
+.textarea:hover:not(:disabled),
+.select:hover:not(:disabled) {
+  border-color: var(--text-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-ring);
+}
+
+.input:disabled,
+.textarea:disabled,
+.select:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-subtle);
+  cursor: not-allowed;
+}
+
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.input[aria-invalid="true"]:focus,
+.textarea[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+.textarea {
+  height: auto;
+  min-height: 5rem;
+  padding: var(--space-3);
+  resize: vertical;
+  line-height: var(--leading-normal);
+}
+
+.select {
+  appearance: none;
+  padding-right: var(--space-6);
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-subtle) 50%),
+    linear-gradient(135deg, var(--text-subtle) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) center,
+    calc(100% - 13px) center;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox input {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/*
+ * A field control carrying a mark inside it, from <Input icon={...} />.
+ *
+ * The wrapper only appears when a mark was passed, so a plain field is still
+ * a direct child of .field and the rules above it are untouched.
+ */
+.field-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-affix {
+  position: absolute;
+  left: var(--space-3);
+  display: flex;
+  align-items: center;
+  color: var(--text-subtle);
+  /* The mark is decoration: a click on it belongs to the control beneath. */
+  pointer-events: none;
+}
+
+.field-affix-end {
+  left: auto;
+  right: var(--space-3);
+}
+
+/* A textarea's mark sits on its first line rather than halfway down it. */
+.field-control-textarea .field-affix {
+  top: 0.7rem;
+  align-items: flex-start;
+}
+
+/* Clear of the select's own chevron, which is a background image. */
+.field-control-select .field-affix-end {
+  right: var(--space-6);
+}
+
+.has-affix {
+  padding-left: 2.25rem;
+}
+
+.has-affix-end {
+  padding-right: 2.25rem;
+}
+
+.select.has-affix-end {
+  padding-right: 3.5rem;
+}
+
+/* An input and its button sharing one rounded group. */
+.input-group {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.input-group .input {
+  flex: 1;
+}
+
+/* A search field with room for a leading icon. */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search > svg {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.search .input {
+  padding-left: 2.25rem;
+}
+
+/* The toolbar over a collection: a search field, a couple of selects and
+   maybe a button, on one shared surface that wraps rather than overflows. */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), var(--sheen);
+}
+
+/* Fields share the bar's width; controls that are not fields keep their own
+   size, so a button stays a button. */
+.filter-bar .field {
+  flex: 1 1 11rem;
+}
+
+.filter-bar .search {
+  flex: 2 1 14rem;
+  min-width: 12rem;
+}
+
+/* The pill variant — the marketplace preset asks for it. */
+.filter-bar-pill {
+  border-radius: var(--radius-pill);
+  padding-inline: var(--space-4);
+}
+
+/* A form worth its own card, divided into sections rather than padded as
+   one block — the divider is what makes a long form scannable. */
+.form-card {
+  display: flex;
+  flex-direction: column;
+  max-width: 44rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), var(--sheen);
+  overflow: hidden;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.form-section + .form-section {
+  border-top: 1px solid var(--border);
+}
+
+/* ══ Badges and chips ═════════════════════════════════════════════════════ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.badge-accent {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent-text);
+}
+
+.badge-success {
+  background: var(--success-soft);
+  border-color: var(--success-border);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-soft);
+  border-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.badge-info {
+  background: var(--info-soft);
+  border-color: var(--info-border);
+  color: var(--info);
+}
+
+/* A small coloured disc, for a status that needs no words. */
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dot-pulse {
+  animation: pulse 2s var(--ease) infinite;
+}
+
+/* ══ Tables ═══════════════════════════════════════════════════════════════ */
+
+.table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  /* Scrolls rather than clips: a table with one column too many for a phone
+     is still readable, and nothing is cut off at the rounded corner. */
+  overflow: auto;
+}
+
+.table-wrap .table {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-base);
+}
+
+/* Sticky, so the header stays put when the wrapper scrolls — which is what
+   makes a wide or tall table readable rather than merely large. */
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-sunken) 92%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background var(--d-fast) var(--ease);
+}
+
+.table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══ Lists ════════════════════════════════════════════════════════════════ */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--d-fast) var(--ease);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:hover {
+  background: var(--surface-hover);
+}
+
+.list-item-title {
+  font-weight: var(--weight-medium);
+}
+
+.list-item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+  flex: none;
+}
+
+/* ══ Tabs ═════════════════════════════════════════════════════════════════ */
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  width: fit-content;
+}
+
+.tab {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease),
+    box-shadow var(--d-fast) var(--ease);
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* A mark for the whole strip, and a count on one tab. */
+.tabs-mark {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-2);
+  color: var(--text-subtle);
+}
+
+.tabs-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+.tab-badge {
+  margin-inline-start: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.tab[aria-selected="true"] .tab-badge {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+/* ══ Charts ═══════════════════════════════════════════════════════════════
+   Plain SVG, coloured from the accent, so a chart follows the palette and
+   both themes like everything else. No axis, no legend: at the size a card
+   gives them those are noise, and the label belongs to the card. */
+
+.sparkline {
+  display: block;
+  width: 100%;
+  height: 2.5rem;
+  overflow: visible;
+}
+
+.sparkline-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  /* Keeps the stroke an even weight under `preserveAspectRatio="none"`, which
+     otherwise stretches it with the geometry. */
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkline-area {
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
+  stroke: none;
+}
+
+.sparkline-dot {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.bar-chart-plot {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  height: 8rem;
+}
+
+.bar-chart-column {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  height: 100%;
+}
+
+/* `--bar` is the datum, as a fraction of the scale. The height is the only
+   thing the component sets inline; the growth and the colour stay here. */
+.bar {
+  width: 100%;
+  min-height: 2px;
+  height: calc(var(--bar, 0) * 100%);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 85%, transparent),
+    color-mix(in srgb, var(--accent) 45%, transparent)
+  );
+  transition: height var(--d-slow) var(--ease-out);
+  animation: grow-up var(--d-slow) var(--ease-out) backwards;
+}
+
+.bar-highlight {
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 60%, transparent));
+  box-shadow: var(--sheen);
+}
+
+.bar-label {
+  max-width: 100%;
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+}
+
+.bar-chart-caption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+/* A bar grows from its baseline rather than fading in, which is the one
+   entrance that reads as "this is a measurement". */
+@keyframes grow-up {
+  from {
+    height: 0;
+  }
+}
+
+.donut {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 10rem;
+  margin-inline: auto;
+  aspect-ratio: 1;
+}
+
+.donut-ring {
+  width: 100%;
+  height: 100%;
+  /* Start the arc at twelve o'clock, where a reader expects zero. */
+  transform: rotate(-90deg);
+}
+
+.donut-track,
+.donut-value {
+  fill: none;
+  stroke-width: 3.2;
+}
+
+.donut-track {
+  stroke: var(--surface-sunken);
+}
+
+.donut-value {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dasharray var(--d-slow) var(--ease-out);
+  animation: ring-fill var(--d-slow) var(--ease-out) backwards;
+}
+
+.donut-centre {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--text);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tighter);
+}
+
+.donut-centre .subtle {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-normal);
+  letter-spacing: var(--tracking-normal);
+}
+
+@keyframes ring-fill {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+/* ══ Timeline ═════════════════════════════════════════════════════════════
+   What happened, in order. The rail is a border on the list; the marks sit
+   over it, which is what keeps the line unbroken behind them. */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0 0 0 var(--space-5);
+  border-left: 1px solid var(--border);
+  list-style: none;
+}
+
+.timeline-event {
+  position: relative;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.timeline-mark {
+  position: absolute;
+  left: calc(-1 * var(--space-5) - 0.75rem);
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+/* The tones the rest of the kit uses, so a mark can be read at a glance. */
+.timeline-mark.accent {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.timeline-mark.success {
+  border-color: var(--success-border);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.timeline-mark.warning {
+  border-color: var(--warning-border);
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.timeline-mark.danger {
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.timeline-mark.info {
+  border-color: var(--info-border);
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.timeline-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.timeline-at {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-title {
+  color: var(--text);
+  font-weight: var(--weight-semibold);
+}
+
+.timeline-body p {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.timeline-extra {
+  color: var(--text-subtle);
+  font-size: var(--text-sm);
+}
+
+/* ══ Overlays ═════════════════════════════════════════════════════════════ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+  animation: fade-in var(--d) var(--ease);
+}
+
+.modal {
+  width: 100%;
+  max-width: 30rem;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: pop-in var(--d-slow) var(--ease-out);
+}
+
+/* Widths, so a form or a table in a dialog is not squeezed into 30rem. */
+.modal-sm {
+  max-width: 22rem;
+}
+
+.modal-lg {
+  max-width: 48rem;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.modal-body {
+  padding: 0 var(--space-5) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+  background: var(--surface-sunken);
+}
+
+.toast-region {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 17rem;
+  max-width: 24rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  font-weight: var(--weight-medium);
+  pointer-events: auto;
+  animation: slide-in-right var(--d-slow) var(--ease-out);
+}
+
+/* `info` is the default tone, so this is the toast most calls produce. It was
+   the one tone with no rule of its own and fell back to the accent border on
+   `.toast`, which made it the only place in the kit where an info message did
+   not use the info colour that .alert-info and .badge-info use. */
+.toast-info {
+  border-left-color: var(--info);
+}
+
+.toast-success {
+  border-left-color: var(--success);
+}
+
+.toast-error {
+  border-left-color: var(--danger);
+}
+
+/* An inline message block, for errors and notices inside a page. */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-size: var(--text-base);
+}
+
+.alert-error {
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.alert-success {
+  background: var(--success-soft);
+  border-color: var(--success-border);
+  color: var(--success);
+}
+
+.alert-warning {
+  background: var(--warning-soft);
+  border-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.alert-info {
+  background: var(--info-soft);
+  border-color: var(--info-border);
+  color: var(--info);
+}
+
+/* ══ Async states ═════════════════════════════════════════════════════════ */
+
+/* The shimmer placeholder. Size it with width/height where it is used. */
+.skeleton {
+  height: 1rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--surface-sunken) 25%,
+    var(--surface-active) 37%,
+    var(--surface-sunken) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s var(--ease) infinite;
+}
+
+.skeleton-text {
+  height: 0.75rem;
+  border-radius: var(--radius-pill);
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  width: 40%;
+}
+
+.spinner {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 650ms linear infinite;
+}
+
+.spinner-lg {
+  width: 2rem;
+  height: 2rem;
+  border-width: 3px;
+}
+
+.spinner-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-width: 2px;
+}
+
+/* The nothing-here state: never show a blank panel instead. The dashed edge
+   and the faint accent wash mark it as a place waiting for content rather
+   than as a card that failed to load. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-7) var(--space-5);
+  text-align: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      28rem 14rem at 50% 0%,
+      color-mix(in srgb, var(--accent) 8%, transparent) 0%,
+      transparent 65%
+    ),
+    var(--surface);
+}
+
+.empty-state-icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    140deg,
+    var(--accent-soft),
+    color-mix(in srgb, var(--accent) 12%, var(--surface))
+  );
+  color: var(--accent-text);
+  box-shadow:
+    0 0 0 1px var(--accent-border),
+    0 0 0 7px color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+/* "All caught up" — the success variant's green chip. */
+.empty-state-success .empty-state-icon {
+  background: linear-gradient(
+    140deg,
+    var(--success-soft),
+    color-mix(in srgb, var(--success) 10%, var(--surface))
+  );
+  color: var(--success);
+  box-shadow:
+    0 0 0 1px var(--success-border),
+    0 0 0 7px color-mix(in srgb, var(--success) 7%, transparent);
+}
+
+.empty-state-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.empty-state-body {
+  max-width: 28rem;
+  color: var(--text-muted);
+}
+
+.progress {
+  height: 0.375rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-active);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  transition: width var(--d-slow) var(--ease-out);
+}
+
+/* ══ Imagery and texture ══════════════════════════════════════════════════
+   What makes a screen feel designed rather than merely tidy. All of it is
+   CSS or an inline SVG, so it costs no network request and cannot 404 — the
+   one thing here that does load over the network is a photo in `.media`, and
+   that degrades to a gradient when it fails. */
+
+/* A multi-point colour mesh. Use it behind a hero or an empty dashboard. */
+.mesh {
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(at 18% 22%, color-mix(in srgb, var(--accent) 34%, transparent) 0px, transparent 55%),
+    radial-gradient(at 82% 10%, color-mix(in srgb, var(--info) 28%, transparent) 0px, transparent 50%),
+    radial-gradient(at 72% 88%, color-mix(in srgb, var(--success) 22%, transparent) 0px, transparent 55%),
+    radial-gradient(at 30% 95%, color-mix(in srgb, var(--warning) 18%, transparent) 0px, transparent 50%);
+}
+
+/* A fine film of grain. Pair with .mesh so the gradient does not read flat. */
+.noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dots {
+  background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* The banner a landing or dashboard screen opens with. */
+.hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 14rem;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md), var(--sheen);
+}
+
+/* A soft glow in the far corner of the banner, under the content. Costs
+   nothing, and stops a mesh or a photograph reading as a flat rectangle. */
+.hero::before {
+  content: "";
+  position: absolute;
+  right: -10%;
+  top: -40%;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 26%, transparent) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+/* A mark above the headline, on the accent wash the banner already carries. */
+.hero-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.hero-title {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-snug);
+  max-width: 34rem;
+}
+
+.hero-body {
+  max-width: 38rem;
+  color: var(--text-muted);
+  font-size: var(--text-md);
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* A photograph behind the banner, set by <Hero image="…" />.
+   The scrim is built from the theme's own ground rather than a fixed black,
+   so the headline keeps its contrast in both themes and the banner still
+   belongs to the palette it was given. */
+.hero-photo {
+  background-color: var(--accent-soft);
+  background-image:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--bg) 92%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 70%, transparent) 46%,
+      color-mix(in srgb, var(--bg) 24%, transparent) 100%
+    ),
+    var(--hero-image);
+  background-size: cover;
+  background-position: center;
+}
+
+/* Reserved for a headline word or a metric, never a paragraph. Three stops
+   and a slow drift, so the accent moves through the word instead of sitting
+   on it — the one piece of ambient motion in the system. */
+.gradient-text {
+  background: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--accent-2) 45%,
+    var(--accent) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-drift 9s var(--ease) infinite alternate;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+/* ── Surface utilities ────────────────────────────────────────────────────
+   For markup the components do not cover: a panel that should read as raised,
+   a tile that should answer the cursor, a rule that should carry the accent.
+   All of them are one class on an element that already exists. */
+
+/* The lift a Card gets from `interactive`, available to any element. */
+.hover-lift {
+  transition:
+    transform var(--d) var(--ease),
+    box-shadow var(--d) var(--ease),
+    border-color var(--d) var(--ease);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-lg), var(--shadow-accent);
+}
+
+/* A panel lifted off the page: deeper elevation and a hairline of light. */
+.raised {
+  box-shadow: var(--shadow-xl), var(--sheen);
+}
+
+/* A ring in the application's own colour, for the one surface on a screen
+   that is being pointed at — a selected plan, a recommended option. */
+.ring-accent {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-accent);
+}
+
+/* A band of light that travels across a surface once on entry. Put it on a
+   hero, a banner or a price card — never on more than one thing per screen. */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, white 22%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 250% 100%;
+  pointer-events: none;
+  /* Forwards, so the band ends off the surface instead of parking on it. */
+  animation: shine-sweep 2.4s var(--ease-out) 300ms 1 forwards;
+}
+
+/* An entrance tied to the scroll position rather than to load, so a long page
+   arrives section by section as it is read. Progressive enhancement: where
+   scroll-driven animation is unsupported the element is simply already
+   visible, which is the correct fallback. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: fade-in-up var(--d-slower) var(--ease-out) both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 24%;
+    }
+  }
+}
+
+/* ── Photographs ──────────────────────────────────────────────────────────
+   A fixed-ratio frame, so a loading or missing photo never shifts the
+   layout. The frame carries a gradient of its own, which is what shows if
+   the image never arrives. */
+.media {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(140deg, var(--accent-soft), var(--surface-active));
+  border-radius: var(--radius-md);
+}
+
+.media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    opacity var(--d-slow) var(--ease),
+    transform var(--d-slow) var(--ease);
+}
+
+/* Set by the RemoteImage component until the file has decoded. */
+.media img[data-loading="true"] {
+  opacity: 0;
+}
+
+/* Only loading frames animate; ready, failed and missing images stay still. */
+@media (prefers-reduced-motion: no-preference) {
+  .media[data-image-state="loading"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--surface-active);
+    animation: media-loading 1.6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes media-loading {
+  from { opacity: 0; }
+  to { opacity: 0.45; }
+}
+
+.media-16x9 {
+  aspect-ratio: 16 / 9;
+}
+
+.media-4x3 {
+  aspect-ratio: 4 / 3;
+}
+
+.media-square {
+  aspect-ratio: 1 / 1;
+}
+
+.card-interactive:hover .media img {
+  transform: scale(1.04);
+}
+
+/* A photo that is itself a control, set by RemoteImage when it is given a
+   click handler. */
+.media-interactive {
+  cursor: pointer;
+}
+
+.media-interactive:hover img {
+  transform: scale(1.04);
+}
+
+/* A photo edge-to-edge at the top of a card, above the body. */
+.card > .media:first-child {
+  border-radius: 0;
+}
+
+/* The mark a frame falls back to when there is no photo, from
+   <RemoteImage icon={...} />. Centred in the frame's own gradient. */
+.media-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-subtle);
+  opacity: 0.7;
+}
+
+.media-representative {
+  position: absolute;
+  bottom: var(--space-2);
+  left: var(--space-2);
+  right: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+/* A scrim, so text laid over a photo stays readable whatever the photo is. */
+.media-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.1) 55%, transparent);
+  color: #fff;
+}
+
+.media-overlay .muted,
+.media-overlay .subtle {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ── Avatars ──────────────────────────────────────────────────────────────── */
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.625rem;
+}
+
+.avatar-lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: var(--text-md);
+}
+
+/* Overlapping faces, for "shared with" and attendee rows. */
+.avatar-stack {
+  display: flex;
+}
+
+.avatar-stack .avatar + .avatar {
+  margin-left: -0.5rem;
+}
+
+.avatar-stack .avatar {
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* ══ Motion ═══════════════════════════════════════════════════════════════ */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* The slow travel of .gradient-text. Alternates, so it never jumps back. */
+@keyframes gradient-drift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+/* One pass of light across a surface, ending clear of it. */
+@keyframes shine-sweep {
+  from {
+    background-position: 100% 50%;
+    opacity: 1;
+  }
+  to {
+    background-position: 0% 50%;
+    opacity: 0;
+  }
+}
+
+/* The hero's photograph settles rather than appearing fixed. */
+@keyframes slow-zoom {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* The entrance every page and panel uses. */
+.animate-in {
+  animation: fade-in-up var(--d-slow) var(--ease-out) backwards;
+}
+
+/* Stagger a list so items arrive in sequence instead of all at once, which is
+   most of why a UI feels built.
+
+   Two ways in. Put `stagger` on the container and its children are delayed by
+   position with no props at all — the right choice for a list of siblings.
+   Where the items are not siblings, set `--i` per item with the `stagger(i)`
+   helper from src/ui, which is typed so no cast is needed. */
+.animate-in[style*="--i"] {
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+.stagger > * {
+  animation: fade-in-up var(--d-slow) var(--ease-out) backwards;
+}
+
+.stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 45ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 90ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 135ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 180ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 225ms;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 270ms;
+}
+.stagger > *:nth-child(8) {
+  animation-delay: 315ms;
+}
+/* Past the eighth the delay would be felt as lag rather than sequence, so
+   everything after it arrives together. */
+.stagger > *:nth-child(n + 9) {
+  animation-delay: 360ms;
+}
+
+/* Accessibility floor: honour a reduced-motion preference everywhere at once. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .btn:hover:not(:disabled),
+  .card-interactive:hover,
+  .stat-interactive:hover,
+  .feature:hover,
+  .hover-lift:hover {
+    transform: none;
+  }
+
+  /* Ambient motion has no interaction to justify it, so it is removed rather
+     than merely shortened. */
+  .gradient-text,
+  .landing-hero::before {
+    animation: none;
+  }
+
+  .shine::after {
+    display: none;
+  }
+}
+
+/* ══ Responsive ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 60rem) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+  }
+
+  .sidebar-section {
+    display: none;
+  }
+
+  .content {
+    padding: var(--space-5) var(--space-4) var(--space-7);
+  }
+
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header-actions {
+    margin-left: 0;
+  }
+}
+
+/* ── Landing page ─────────────────────────────────────────────────────────
+   The screen an application is judged by before anyone signs in. AppShell
+   frames the product; this frames the pitch, so it is a layout of its own
+   rather than a variation on the sidebar. */
+.landing {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.landing-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--topbar-h);
+  padding: 0 var(--space-5);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: -0.01em;
+}
+
+.landing-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* The photograph, and the scrim that keeps the headline legible over it.
+   The scrim is mixed from the theme's own ground rather than a fixed black,
+   so one markup works on both and the band still belongs to the palette. */
+.landing-hero {
+  background-color: var(--bg);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  min-height: min(40rem, 86vh);
+  padding: var(--space-8) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+/* The photograph is its own layer rather than the section's background, so it
+   can settle out of a slow zoom on arrival — the single cheapest thing that
+   makes a landing screen feel like a product rather than a page. */
+.landing-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--landing-image);
+  background-size: cover;
+  background-position: center;
+  animation: slow-zoom 1.6s var(--ease-out) backwards;
+}
+
+/* The scrim: an angled wash from the theme's own ground, plus a fade into the
+   band below, so the headline keeps its contrast and the fold is not a seam.
+   A faint line-grid rides over it — the texture that stops a big smooth
+   gradient reading as a stock backdrop. */
+.landing-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--bg) 96%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 74%, transparent) 42%,
+      color-mix(in srgb, var(--bg) 22%, transparent) 100%
+    ),
+    linear-gradient(to top, var(--bg) 0%, transparent 28%),
+    radial-gradient(
+      60rem 40rem at 12% 0%,
+      color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+      transparent 60%
+    );
+  background-size:
+    44px 44px,
+    44px 44px,
+    auto,
+    auto,
+    auto;
+}
+
+/* Centred text gets the scrim evenly rather than from one side. */
+.landing-hero.landing-center::after {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg) 82%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 62%, transparent) 55%,
+      var(--bg) 100%
+    ),
+    radial-gradient(
+      60rem 40rem at 50% 0%,
+      color-mix(in srgb, var(--accent) 20%, transparent) 0%,
+      transparent 62%
+    );
+  background-size:
+    44px 44px,
+    44px 44px,
+    auto,
+    auto;
+}
+
+.landing-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Centred text wants a narrower measure, or the sentence runs past the eye. */
+.landing-center {
+  text-align: center;
+}
+
+.landing-center .landing-inner {
+  align-items: center;
+  max-width: 48rem;
+}
+
+.landing-center .landing-sub {
+  margin-inline: auto;
+}
+
+.landing-center .landing-actions {
+  justify-content: center;
+}
+
+.landing-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--accent-soft) 80%, transparent);
+  backdrop-filter: blur(10px) saturate(150%);
+  box-shadow: var(--sheen);
+  color: var(--accent-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-normal);
+}
+
+.landing-center .landing-eyebrow {
+  align-self: center;
+}
+
+.landing-title {
+  max-width: 18ch;
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  font-weight: var(--display-hero-weight);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--display-hero-tracking);
+}
+
+.landing-sub {
+  max-width: 40rem;
+  color: var(--text-muted);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-normal);
+  line-height: var(--leading-normal);
+}
+
+.landing-actions {
+  margin-top: var(--space-3);
+  gap: var(--space-3);
+}
+
+/* The landing's primary action is the largest control in the application, so
+   it is sized here rather than asking every generated page to remember. */
+.landing-actions .btn {
+  height: 2.75rem;
+  padding: 0 var(--space-5);
+  font-size: var(--text-md);
+}
+
+/* A row of proof under the actions — counts, names, a rating — carried as a
+   bordered strip of glass over whatever the hero is showing. */
+.landing-proof {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: var(--shadow-sm), var(--sheen);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.landing-proof strong {
+  display: block;
+  color: var(--text);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tighter);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Everything below the fold. A flow of sections rather than one padded box:
+   a `.band` child reaches both edges of the viewport, and every other child
+   gets the padding and the measure the old wrapper applied to all of them. */
+.landing-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.landing-body > :not(.band) {
+  width: 100%;
+  max-width: calc(var(--content-max) + 2 * var(--space-5));
+  margin-inline: auto;
+  padding-inline: var(--space-5);
+}
+
+.landing-body > :first-child:not(.band) {
+  padding-block-start: var(--space-8);
+}
+
+.landing-body > :last-child:not(.band) {
+  padding-block-end: var(--space-8);
+}
+
+/* ── Feature cards ────────────────────────────────────────────────────────
+   One claim each. Put three or four in a .grid under the fold. */
+.feature {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--d) var(--ease),
+    box-shadow var(--d) var(--ease),
+    transform var(--d) var(--ease);
+}
+
+.feature:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-lg), var(--shadow-accent);
+  transform: translateY(-3px);
+}
+
+/* The mark is a filled accent tile rather than a tinted one: on a landing
+   page these three or four icons are the only colour below the fold. */
+.feature-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(140deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: var(--shadow-accent), var(--sheen);
+}
+
+.feature-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+}
+
+.feature-body {
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+}
+
+/* ── Closing call to action ───────────────────────────────────────────────
+   The card a landing page ends on: lit by the accent and glowing at the top
+   edge, centred, with room around the words. One action beside an outline at
+   most — it is the destination, not one more card in the grid. */
+.cta-panel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: 44rem;
+  margin-inline: auto;
+  padding: var(--space-7) var(--space-6);
+  text-align: center;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      32rem 16rem at 50% -40%,
+      color-mix(in srgb, var(--accent) 26%, transparent) 0%,
+      transparent 62%
+    ),
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--accent) 10%, var(--surface)),
+      var(--surface) 60%
+    );
+  box-shadow:
+    var(--shadow-lg),
+    var(--shadow-accent),
+    var(--sheen);
+}
+
+.cta-icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(140deg, var(--accent), var(--accent-2));
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-accent), var(--sheen);
+}
+
+.cta-title {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--display-hero-weight);
+  letter-spacing: var(--display-hero-tracking);
+  line-height: var(--leading-snug);
+  max-width: 22ch;
+}
+
+.cta-body {
+  max-width: 36rem;
+  color: var(--text-muted);
+  font-size: var(--text-md);
+}
+
+.cta-actions {
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+.cta-actions .btn {
+  height: 2.625rem;
+  padding: 0 var(--space-5);
+  font-size: var(--text-md);
+}
+
+/* The inverted close — the page's text colour as its ground. */
+.cta-panel-dark {
+  border-color: transparent;
+  background:
+    radial-gradient(
+      32rem 16rem at 50% -40%,
+      color-mix(in srgb, var(--accent) 30%, transparent) 0%,
+      transparent 62%
+    ),
+    var(--text);
+  color: var(--bg);
+  box-shadow: var(--shadow-lg), var(--shadow-accent);
+}
+
+.cta-panel-dark .cta-body {
+  color: color-mix(in srgb, var(--bg) 74%, transparent);
+}
+
+/* ── Palette picker ───────────────────────────────────────────────────────
+   Chrome, next to the theme toggle in both frames. A native select, so it is
+   one element and correct for the keyboard and a screen reader for free. */
+.palette-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.palette-mark {
+  position: absolute;
+  left: var(--space-2);
+  display: inline-grid;
+  place-items: center;
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.palette-select {
+  height: 2rem;
+  padding: 0 var(--space-2) 0 var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: border-color var(--d) var(--ease), color var(--d) var(--ease);
+}
+
+.palette-select:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.palette-select:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+  border-color: var(--accent);
+}
+
+@media (max-width: 40rem) {
+  .palette-menu {
+    display: none;
+  }
+
+  .landing-hero {
+    min-height: 30rem;
+    padding: var(--space-7) var(--space-4);
+  }
+
+  .landing-title {
+    max-width: none;
+  }
+
+  .band {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  /* The banner header stacks on a phone: the actions drop under the title
+     and fill the measure, and the padding comes in so the card is not all
+     frame. */
+  .page-header-banner {
+    align-items: flex-start;
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .page-header-banner .page-header-actions {
+    margin-left: 0;
+  }
+
+  .page-header-banner .page-header-actions .btn {
+    flex: 1 1 10rem;
+  }
+
+  /* A photo band on a phone keeps its scrim but asks less of the picture —
+     a taller crop would push the content off the screen. */
+  .band-image {
+    background-position: 60% center;
+  }
+
+  .cta-panel {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .landing-body > :not(.band) {
+    padding-inline: var(--space-4);
+  }
+
+  /* On a phone the hero's two calls to action stack, so they should fill the
+     measure rather than sit half-width beside each other. */
+  .landing-actions {
+    width: 100%;
+  }
+
+  .landing-actions .btn {
+    flex: 1 1 12rem;
+  }
+}
+
+/* Site shell — the marketing frame around the application. Header links and
+   footer columns compose what AppShell deliberately does not carry. */
+.site {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.site > main {
+  flex: 1;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: calc(var(--display-weight) + 100);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* The brand's mark wears the accent gradient chip the app's sidebar uses —
+   one product, one mark. */
+.site-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(140deg, var(--accent), var(--accent-active));
+  color: var(--text-inverse);
+}
+
+.site-nav {
+  display: flex;
+  gap: var(--space-1);
+  margin-inline: auto;
+}
+
+.site-nav a {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  transition:
+    background var(--d-fast) var(--ease),
+    color var(--d-fast) var(--ease);
+}
+
+.site-nav a:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* The current page, where a site marks one — a quiet pill rather than a
+   bare colour change. */
+.site-nav a[aria-current="page"],
+.site-nav a.active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: var(--weight-semibold);
+}
+
+.site-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--bg-tint);
+  padding: var(--space-6) var(--space-5) var(--space-4);
+}
+
+.site-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-5);
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+.site-footer-grid .label {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.site-footer-link {
+  display: block;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  padding-block: var(--space-1);
+}
+
+.site-footer-link:hover {
+  color: var(--text);
+}
+
+.site-footer-copy {
+  max-width: var(--content-max);
+  margin: var(--space-5) auto 0;
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 40rem) {
+  .site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+    order: 3;
+    margin-inline: 0;
+  }
+}
+
+/* Data table, pagination, drawer, menu, switch, breadcrumbs, board, calendar */
+.data-table-toolbar { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.data-table-toolbar .field, .data-table-toolbar input { max-width: 20rem; }
+.sort-mark { font-size: .75em; color: var(--text-muted); }
+.table-wrap thead th { position: sticky; top: 0; background: var(--bg); z-index: 1; }
+.table th[aria-sort] { cursor: pointer; user-select: none; }
+tr.row-link { cursor: pointer; }
+.pagination { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); padding-top: var(--space-3); }
+.drawer-backdrop { position: fixed; inset: 0; z-index: 50; background: color-mix(in srgb, var(--text) 30%, transparent); }
+.drawer { position: absolute; top: 0; right: 0; height: 100%; width: min(28rem, 92vw); display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg, -8px 0 24px rgb(0 0 0 / .18)); }
+.drawer-head { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4); border-bottom: 1px solid var(--border); }
+.drawer-title { flex: 1; font-size: 1.05rem; margin: 0; }
+.drawer-body { flex: 1; overflow-y: auto; padding: var(--space-4); }
+.drawer-foot { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); display: flex; gap: var(--space-2); justify-content: flex-end; }
+.menu { position: relative; display: inline-block; }
+.menu-pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 40; min-width: 10rem; padding: var(--space-1); background: var(--surface, var(--bg)); border: 1px solid var(--border); border-radius: var(--radius, .5rem); box-shadow: var(--shadow-lg, 0 8px 24px rgb(0 0 0 / .18)); display: flex; flex-direction: column; }
+.menu-item { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: none; border: 0; color: var(--text); font: inherit; text-align: left; border-radius: var(--radius-sm, .35rem); cursor: pointer; }
+.menu-item:hover, .menu-item:focus-visible { background: var(--bg-tint); outline: none; }
+.menu-item-danger { color: var(--danger); }
+.switch { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+.switch input { position: absolute; opacity: 0; }
+.switch-track { width: 2.25rem; height: 1.25rem; border-radius: 999px; background: var(--border-strong); position: relative; transition: background var(--d-fast) var(--ease); flex: none; }
+.switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 1rem; height: 1rem; border-radius: 50%; background: var(--bg); transition: transform var(--d-fast) var(--ease); }
+.switch input:checked + .switch-track { background: var(--accent); }
+.switch input:checked + .switch-track::after { transform: translateX(1rem); }
+.switch input:focus-visible + .switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .switch-track, .switch-track::after { transition: none; } }
+.breadcrumbs { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-muted); }
+.breadcrumbs a { color: var(--text-muted); }
+.breadcrumbs a:hover { color: var(--text); }
+.crumb-sep { margin-inline: var(--space-1); }
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(15rem, 1fr); gap: var(--space-3); overflow-x: auto; align-items: start; }
+.board-col { background: var(--bg-tint); border: 1px solid var(--border); border-radius: var(--radius, .5rem); padding: var(--space-3); }
+.board-head { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: var(--space-2); }
+.board-list { display: flex; flex-direction: column; gap: var(--space-2); min-height: 2rem; }
+.board-empty { margin: 0; font-size: var(--text-sm); }
+.board-card { display: flex; flex-direction: column; gap: var(--space-1); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm, .35rem); padding: var(--space-2); }
+.board-card[draggable="true"] { cursor: grab; }
+.board-col-accent { border-top: 3px solid var(--accent); }
+.board-col-success { border-top: 3px solid var(--info, var(--accent)); }
+.board-col-warning { border-top: 3px solid var(--danger); }
+.board-col-danger { border-top: 3px solid var(--danger); }
+.board-col-info { border-top: 3px solid var(--info, var(--accent)); }
+.calendar .cal-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
+.cal-title { font-weight: 600; margin-right: auto; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius, .5rem); overflow: hidden; }
+.cal-dow { background: var(--bg-tint); padding: var(--space-1) var(--space-2); font-size: var(--text-sm); text-align: center; }
+.cal-day { background: var(--bg); min-height: 5.5rem; padding: var(--space-1); display: flex; flex-direction: column; gap: 2px; }
+.cal-day.cal-out { opacity: .45; }
+.cal-day.cal-today .cal-num { color: var(--accent); font-weight: 700; }
+.cal-day.cal-pick { cursor: pointer; }
+.cal-day.cal-pick:hover { background: var(--bg-tint); }
+.cal-num { font-size: var(--text-sm); }
+.cal-chip { font-size: .72rem; padding: 1px var(--space-1); border: 0; border-radius: var(--radius-sm, .35rem); background: var(--accent-soft); color: var(--accent-text, var(--text)); text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-chip.cal-success { background: var(--info-soft, var(--accent-soft)); }
+.cal-chip.cal-warning, .cal-chip.cal-danger { background: var(--danger-soft); color: var(--danger); }
+.cal-chip.cal-info { background: var(--info-soft, var(--accent-soft)); }
+.cal-more { font-size: .72rem; }
+
+/* ══ Design variants ══════════════════════════════════════════════════════
+   The layouts `preset`/`layout` choose between, scoped to `data-layout` on
+   each shell's root so a page that passes nothing renders exactly the rules
+   above. No new animation — the variants differ in structure, not motion. */
+
+/* Text that is present for a screen reader but not on screen — the rail
+   layout's labels, which reappear below 60rem. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── AppShell: topnav ─────────────────────────────────────────────────────
+   The nav moves into the top bar; the grid drops to one column whether or
+   not the caller has nav items. */
+.app-shell[data-layout="topnav"] {
+  grid-template-columns: 1fr;
+}
+
+.topbar.topbar-nav {
+  gap: var(--space-3);
+}
+
+.topnav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--display-weight);
+  letter-spacing: -0.02em;
+}
+
+/* The bar of items; it scrolls sideways on a narrow screen rather than
+   wrapping into a second line and doubling the bar's height. */
+.topnav-nav {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+  min-width: 0;
+  margin-inline: var(--space-3);
+  overflow-x: auto;
+  scrollbar-width: none;
+  align-self: stretch;
+}
+
+.topnav-nav .nav-item {
+  position: relative;
+  flex: none;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* The active mark moves from the left rail to a rule under the item, which
+   is where a horizontal nav reads it. */
+.topnav-nav .nav-item[aria-current="page"]::before,
+.topnav-nav .nav-item.active::before {
+  left: 15%;
+  right: 15%;
+  top: auto;
+  bottom: 0;
+  width: auto;
+  height: 3px;
+  border-radius: var(--radius-pill) var(--radius-pill) 0 0;
+}
+
+/* ── AppShell: rail ───────────────────────────────────────────────────────
+   A narrow icon strip instead of a labelled sidebar. The labels stay in the
+   DOM — visually hidden — so they read to a screen reader and return below
+   60rem, where every layout falls back to the stacked row. */
+.app-shell[data-layout="rail"]:not(.no-sidebar) {
+  grid-template-columns: var(--rail-w) 1fr;
+}
+
+.sidebar.rail {
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-2);
+}
+
+.sidebar.rail .sidebar-brand {
+  padding: 0;
+}
+
+.sidebar.rail .sidebar-nav {
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar.rail .nav-item {
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-3);
+}
+
+/* ── SiteShell: masthead ──────────────────────────────────────────────────
+   Same DOM as classic; a 3-column grid puts nav left, the brand centred in
+   the display face, actions right. */
+.site[data-layout="masthead"] .site-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.site[data-layout="masthead"] .site-nav {
+  grid-column: 1;
+  grid-row: 1;
+  margin-inline: 0;
+}
+
+.site[data-layout="masthead"] .site-brand {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  font-size: var(--text-lg);
+}
+
+.site[data-layout="masthead"] .site-header-actions {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+
+/* ── Landing: split ───────────────────────────────────────────────────────
+   The photograph becomes a panel beside the headline rather than the layer
+   behind it, so the scrim is not needed and the inner column stops being
+   the measure-holder. */
+.landing[data-layout="split"] .landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+  padding-inline: max(var(--space-5), calc((100% - var(--content-max)) / 2));
+}
+
+.landing[data-layout="split"] .landing-hero::before {
+  content: none;
+}
+
+.landing[data-layout="split"] .landing-hero::after {
+  background-image: radial-gradient(
+    60rem 40rem at 12% 0%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+    transparent 60%
+  );
+}
+
+.landing-media {
+  background-color: var(--accent-soft);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-xl);
+  background-image: var(--landing-image);
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-xl);
+}
+
+/* ── Landing: minimal ─────────────────────────────────────────────────────
+   Typographic: no photograph at all, just the accent wash and a shorter,
+   quieter hero. */
+.landing[data-layout="minimal"] .landing-hero {
+  min-height: min(30rem, 60vh);
+}
+
+.landing[data-layout="minimal"] .landing-hero::before {
+  content: none;
+}
+
+.landing[data-layout="minimal"] .landing-hero::after {
+  background-image: radial-gradient(
+    60rem 40rem at 12% 0%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+    transparent 60%
+  );
+}
+
+.landing[data-layout="minimal"] .landing-hero.landing-center::after {
+  background-image: radial-gradient(
+    60rem 40rem at 50% 0%,
+    color-mix(in srgb, var(--accent) 20%, transparent) 0%,
+    transparent 62%
+  );
+}
+
+.landing[data-layout="minimal"] .landing-title {
+  font-size: var(--text-4xl);
+}
+
+/* ── Landing: banner ──────────────────────────────────────────────────────
+   The photograph stays, but at banner height — a catalogue's grid starts
+   above the fold instead of below a hero. */
+.landing[data-layout="banner"] .landing-hero {
+  min-height: min(18rem, 40vh);
+}
+
+.landing[data-layout="banner"] .landing-title {
+  font-size: var(--text-4xl);
+}
+
+.landing[data-layout="banner"] .landing-sub {
+  font-size: var(--text-lg);
+}
+
+.landing[data-layout="banner"] .landing-actions {
+  margin-top: var(--space-2);
+}
+
+.landing[data-layout="banner"] .landing-actions .btn {
+  height: 2.25rem;
+  padding: 0 var(--space-4);
+  font-size: var(--text-base);
+}
+
+@media (max-width: 60rem) {
+  /* Below the stacked-row breakpoint the rail becomes the same single
+     column every layout falls back to, and its labels come back, so the
+     hidden spans and the icon-only centring are both undone. */
+  .app-shell[data-layout="rail"]:not(.no-sidebar) {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar.rail {
+    align-items: center;
+  }
+
+  .sidebar.rail .sidebar-nav {
+    align-items: center;
+    width: auto;
+  }
+
+  .sidebar.rail .nav-item {
+    justify-content: flex-start;
+    width: auto;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .sidebar.rail .visually-hidden {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+  }
+
+  /* Split collapses to one column with the media after the text — DOM order
+     already puts it there. */
+  .landing[data-layout="split"] .landing-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+@media (max-width: 40rem) {
+  /* The masthead uses the same mobile disclosure as the classic header. */
+  .site[data-layout="masthead"] .site-header {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+  }
+
+  .site[data-layout="masthead"] .site-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-inline: 0;
+  }
+
+  .landing[data-layout="split"] .landing-hero {
+    padding-inline: var(--space-4);
+  }
+}
+
+/* ══ Preset treatments ════════════════════════════════════════════════════
+   Each preset already picks its tokens — density, radius, fonts, layouts —
+   in tokens.css. These are the small visual signatures on top of that, all
+   scoped to data-preset on <html> so a page that picks nothing is
+   pixel-identical to before. */
+
+/* ── Editorial ────────────────────────────────────────────────────────────
+   A magazine, not a dashboard: thin display type, hairline structure, sharp
+   imagery and room around everything. */
+[data-preset="editorial"] .landing-title {
+  letter-spacing: -0.045em;
+}
+
+[data-preset="editorial"] .card,
+[data-preset="editorial"] .media {
+  border-radius: var(--radius-sm);
+}
+
+[data-preset="editorial"] .card {
+  box-shadow: var(--shadow-sm);
+}
+
+[data-preset="editorial"] .section-head::after {
+  background: linear-gradient(90deg, var(--border-strong), transparent);
+}
+
+[data-preset="editorial"] .band {
+  padding-block: calc(var(--space-8) + var(--space-6));
+}
+
+/* ── Marketplace ──────────────────────────────────────────────────────────
+   A catalogue: denser product grids, a pill toolbar, and prices and badges
+   that read first. */
+[data-preset="marketplace"] .grid:not(.grid-featured) {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+}
+
+[data-preset="marketplace"] .filter-bar {
+  border-radius: var(--radius-pill);
+  padding-inline: var(--space-4);
+}
+
+[data-preset="marketplace"] .badge {
+  font-weight: var(--weight-bold);
+}
+
+[data-preset="marketplace"] .stat-value {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  font-weight: var(--weight-black);
+}
+
+/* ── Booking ──────────────────────────────────────────────────────────────
+   A service you trust with your evening: round corners (already the
+   preset's radius), soft lifted surfaces and the one accent-ringed card. */
+[data-preset="booking"] .card {
+  box-shadow: var(--shadow-md), var(--sheen);
+}
+
+[data-preset="booking"] .card-feature {
+  box-shadow:
+    0 0 0 1px var(--accent-border),
+    var(--shadow-accent),
+    var(--sheen);
+}
+
+[data-preset="booking"] .btn {
+  border-radius: var(--radius-pill);
+}
+
+/* ── Dashboard ────────────────────────────────────────────────────────────
+   A tool, not a pitch: a muted backdrop so the surfaces carry the content,
+   crisp borders and a stat-first density. */
+[data-preset="dashboard"] .app-shell {
+  background: var(--surface-sunken);
+}
+
+[data-preset="dashboard"] .card,
+[data-preset="dashboard"] .stat {
+  box-shadow: var(--shadow-sm), var(--sheen);
+}
+
+[data-preset="dashboard"] .table th {
+  background: var(--surface-sunken);
+  border-bottom-color: var(--border-strong);
+}
+
+/* ── SaaS ─────────────────────────────────────────────────────────────────
+   The product launch look: the accent does the lighting — bigger glows,
+   deeper accent shadows, a gradient that earns its place. */
+[data-preset="saas"] .btn-primary {
+  box-shadow: var(--shadow-accent-lg), var(--sheen);
+}
+
+[data-preset="saas"] .card-interactive:hover,
+[data-preset="saas"] .feature:hover {
+  box-shadow:
+    var(--shadow-lg),
+    var(--shadow-accent-lg);
+}
+
+[data-preset="saas"] .hero,
+[data-preset="saas"] .cta-panel {
+  box-shadow:
+    var(--shadow-lg),
+    var(--shadow-accent);
+}
+
+/* Content should shrink inside a column before it can widen the page. */
+.media-fallback {
+  position: absolute;
+  inset-inline: var(--space-3);
+  bottom: var(--space-3);
+  width: fit-content;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+:where(.grid, .grid-2, .grid-metrics, .stat-grid, .split, .app-shell) > *,
+.field, .form-card, .landing-inner, .topbar-title {
+  min-width: 0;
+}
+
+.page-title, .section-title, .hero-title, .landing-title, .site-brand {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.page-header > :first-child {
+  min-width: 0;
+}
+
+/* The parent stack already provides section rhythm; avoid doubling the gap. */
+:is(.stack, .stack-lg) > .page-header {
+  margin-bottom: 0;
+}
+
+.section-head, .data-table-toolbar, .pagination, .breadcrumbs {
+  flex-wrap: wrap;
+}
+
+.table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keyboard users receive the same emphasis as pointer users, without a lift. */
+.card-interactive:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-ring);
+}
+
+.card-interactive:focus-visible::before {
+  opacity: 1;
+}
+
+@media (max-width: 60rem) {
+  .topbar.topbar-nav {
+    flex-wrap: wrap;
+    padding-block: var(--space-2);
+  }
+
+  .topnav-nav {
+    order: 3;
+    flex-basis: 100%;
+    margin-inline: 0;
+    padding-block: var(--space-1);
+  }
+
+  .site-header {
+    flex-wrap: wrap;
+  }
+
+  .site[data-layout="masthead"] .site-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .site-nav {
+    flex-wrap: wrap;
+    order: 3;
+    flex-basis: 100%;
+    margin-inline: 0;
+  }
+}
+
+@media (max-width: 40rem) {
+  .topbar, .site-header, .landing-bar {
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+  }
+
+  .topbar, .landing-bar, .site-header-actions {
+    flex-wrap: wrap;
+  }
+
+  .topnav-brand, .site-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .landing-title {
+    font-size: clamp(var(--text-2xl), 9vw, var(--text-4xl));
+  }
+
+  .landing-sub {
+    font-size: var(--text-lg);
+  }
+
+  .landing[data-layout="split"] .landing-hero {
+    min-height: auto;
+  }
+
+  [data-preset="editorial"] .band {
+    padding-block: var(--space-7);
+  }
+
+  .input, .select, .textarea {
+    font-size: var(--text-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .card-interactive:hover .card-media img,
+  .card-interactive:hover .media img {
+    transform: none;
+  }
+}
+
+/* Composable surfaces: content determines the treatment, not the site category. */
+.card { min-width: 0; }
+.card-visual { overflow: hidden; position: relative; }
+.card-visual > .media { border-radius: 0; width: 100%; }
+.card-visual img { transition: transform var(--d-slow) var(--ease-out); }
+.card-body { flex: 1; }
+.card-body .badge { align-self: flex-start; width: fit-content; }
+.card-body > .btn:not(.btn-block) { align-self: flex-start; }
+.card-title { overflow-wrap: break-word; text-wrap: pretty; }
+.card-footer { margin-top: auto; }
+.card-minimal { background: transparent; border-color: transparent; box-shadow: none; }
+.card-minimal .card-header { background: transparent; border-bottom: 0; }
+.card-minimal .card-footer { background: transparent; }
+.card-elevated { border-color: color-mix(in srgb, var(--border) 65%, transparent); box-shadow: var(--shadow-md); }
+.card-glass {
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(16px);
+  border-color: color-mix(in srgb, var(--border-strong) 75%, transparent);
+}
+.card-glass .card-header { background: transparent; }
+.card-overlay {
+  position: relative;
+  isolation: isolate;
+  min-height: 23rem;
+  justify-content: end;
+  background: var(--photo-ground);
+  color: var(--photo-text);
+  border-color: transparent;
+}
+.card-overlay .card-visual { position: absolute; inset: 0; z-index: -2; }
+.card-overlay .card-visual > .media { height: 100%; aspect-ratio: auto; }
+.card-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--photo-scrim);
+  pointer-events: none;
+}
+.card-overlay .card-header { margin-top: auto; background: transparent; border: 0; padding-bottom: 0; }
+.card-overlay .card-body { flex: 0; }
+.card-overlay .card-footer { margin-top: 0; background: transparent; border-color: var(--photo-border); }
+.card-overlay :is(.muted, .subtle) { color: var(--photo-muted); }
+.card-overlay a:not(.btn) { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
+.card-overlay .btn-outline { background: var(--photo-text); color: var(--photo-ground); }
+.card-overlay .btn-outline:hover:not(:disabled) { background: var(--photo-muted); color: var(--photo-ground); }
+.card-interactive:hover { box-shadow: var(--shadow-lg); }
+.card-interactive::before { display: none; }
+.card-interactive:focus-within { border-color: var(--accent-border); }
+
+/* Catalogue titles need enough measure for a make/model and a separate status. */
+[data-preset="marketplace"] .grid:not(.grid-featured) {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr));
+  gap: var(--space-5);
+}
+[data-preset="editorial"] .card-minimal { box-shadow: none; border-bottom-color: var(--border); }
+[data-preset="editorial"] .btn-primary,
+[data-preset="dashboard"] .btn-primary { background-image: none; box-shadow: none; }
+[data-preset="booking"] .card-elevated { box-shadow: var(--shadow-lg); }
+[data-preset="dashboard"] .card-overlay { min-height: 16rem; }
+
+/* Primary actions remain prominent without making every surface glow. */
+.btn { font-weight: var(--weight-semibold); line-height: 1.25; }
+.btn-pill { border-radius: var(--radius-pill); }
+.btn-square { border-radius: var(--radius-sm); }
+.btn[aria-busy="true"] { cursor: progress; opacity: .8; }
+.btn:focus-visible, .icon-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.btn svg { flex-shrink: 0; }
+.input, .select, .textarea { transition: border-color var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease); }
+.input:hover:not(:disabled), .select:hover:not(:disabled), .textarea:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+:is(.hero-title, .landing-title, .section-title) { text-wrap: balance; }
+:is(.landing-sub, .hero-sub, .feature-body) { text-wrap: pretty; max-width: 65ch; }
+
+/* Public navigation is a disclosure on narrow screens, not a row of clipped links. */
+.site-menu-toggle { display: none; }
+.site-nav a { min-height: 2.75rem; display: inline-flex; align-items: center; }
+.site-header { padding-inline: max(var(--space-5), calc((100vw - var(--content-max)) / 2)); }
+.site-brand { letter-spacing: var(--display-tracking); }
+.site-footer { padding-block: var(--space-8) var(--space-5); background: var(--surface); }
+.site-footer-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.site-footer-link { width: fit-content; text-underline-offset: .25em; }
+.site-footer-link:hover { text-decoration: underline; }
+.site-skip {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-overlay);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-200%);
+}
+.site-skip:focus { transform: translateY(0); }
+@media (max-width: 60rem) {
+  .site-menu-toggle { display: inline-flex; margin-left: auto; }
+  .site-nav { display: none; }
+  .site-nav[data-open="true"] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--border);
+  }
+  .site-nav a { border-radius: var(--radius); }
+  .site-header-actions { margin-left: auto; }
+}
+@media (max-width: 40rem) {
+  .site-header { padding-inline: var(--space-4); }
+  .site-header-actions { flex-basis: 100%; justify-content: flex-end; }
+  .site-nav[data-open="true"] { order: 4; }
+  .card-overlay { min-height: 20rem; }
+}
+@media (pointer: coarse) {
+  .btn, .icon-btn, .site-footer-link { min-height: 2.75rem; }
+  .icon-btn, .btn-icon-only { min-width: 2.75rem; }
+  .input, .select { min-height: 2.75rem; }
+}
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .card-interactive:hover, .card-interactive:active, .btn:hover:not(:disabled), .btn:active:not(:disabled) { transform: none; }
+  .card-visual img { transition: none; }
+}

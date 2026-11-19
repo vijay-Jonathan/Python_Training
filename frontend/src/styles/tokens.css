@@ -1,0 +1,537 @@
+/**
+ * Design tokens for the generated application.
+ *
+ * Every visual decision an application needs is named here, so components
+ * reference a semantic token and never a raw hex, px or timing. That is what
+ * keeps a generated screen coherent with the one next to it.
+ *
+ * Two grounds, one vocabulary: the light set lives in `:root` and the dark set
+ * in `[data-theme="dark"]`, and the names never change, so no component
+ * branches on the theme. Sizes, spacing, radii and motion are declared once.
+ *
+ * On top of that, eight accents under `[data-palette="…"]` at the bottom of
+ * this file. An application picks one and wears it everywhere; the names are
+ * again unchanged, so a palette costs no component a branch either, and the
+ * two axes compose — any palette on either ground.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ── Ground and surfaces ───────────────────────────────────────────────── */
+  --bg: #f6f7f9;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #e9edff 0%, transparent 60%);
+  --surface: #ffffff;
+  --surface-sunken: #f1f3f6;
+  --surface-hover: #f6f7f9;
+  --surface-active: #eceff3;
+  --overlay: rgba(15, 20, 30, 0.45);
+
+  --border: #e3e7ed;
+  --border-strong: #cbd2dc;
+
+  /* ── Text ramp: three steps, all meant to be read ──────────────────────── */
+  --text: #141a22;
+  --text-muted: #525c6b;
+  --text-subtle: #7b8696;
+  --text-inverse: #ffffff;
+  /* Photo overlays keep a dark scrim in both themes for predictable contrast. */
+  --photo-ground: #18212b;
+  --photo-text: #ffffff;
+  --photo-muted: #e1e6eb;
+  --photo-border: #ffffff35;
+  --photo-scrim: linear-gradient(180deg, rgba(8, 15, 24, .05), rgba(8, 15, 24, .82) 68%, #080f18);
+
+  /* ── One accent carries every interactive surface ──────────────────────── */
+  --accent: #3b5bdb;
+  --accent-hover: #314cc0;
+  --accent-active: #2a42a6;
+  --accent-soft: #eaeeff;
+  --accent-border: #c3cdfb;
+  --accent-text: #2a42a6;
+  --accent-ring: rgba(59, 91, 219, 0.35);
+  /* The second stop of .gradient-text. Per palette, so a headline's gradient
+     stays inside the application's own colour instead of always sliding to
+     blue. */
+  --accent-2: #0f6fbe;
+
+  /* ── Status. Any colour that is not the accent means status ────────────── */
+  --success: #11845b;
+  --success-soft: #e3f6ed;
+  --success-border: #b3e4cd;
+  --warning: #9a6207;
+  --warning-soft: #fdf2dc;
+  --warning-border: #f0d9a4;
+  --danger: #c8372d;
+  --danger-hover: #ab2d24;
+  --danger-soft: #fdeceb;
+  --danger-border: #f5c5c1;
+  --info: #0f6fbe;
+  --info-soft: #e6f1fb;
+  --info-border: #b9d8f3;
+
+  /* ── Elevation ─────────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 4px 10px rgba(16, 24, 40, 0.07), 0 2px 4px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 14px 34px rgba(16, 24, 40, 0.12), 0 4px 10px rgba(16, 24, 40, 0.05);
+  --shadow-xl: 0 32px 64px -12px rgba(16, 24, 40, 0.2), 0 8px 20px -8px rgba(16, 24, 40, 0.1);
+  --shadow-ring: 0 0 0 3px var(--accent-ring);
+  /* Elevation in the application's own colour. A primary action and a hovered
+     tile cast an accent-tinted shadow rather than a grey one, which is most of
+     why a surface reads as lit instead of merely raised. */
+  --shadow-accent: 0 8px 20px -6px var(--accent-ring);
+  --shadow-accent-lg: 0 18px 40px -10px var(--accent-ring);
+  /* The hairline of light along the top of a raised surface. */
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+  /* ── Type ──────────────────────────────────────────────────────────────── */
+  --font-sans:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  /* Display sizes, for a landing headline and nothing else. Fluid, so one
+     declaration reads correctly on a phone and on a 27" monitor. */
+  --text-4xl: clamp(2.5rem, 5vw, 3.25rem);
+  --text-5xl: clamp(3rem, 7.2vw, 4.875rem);
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  /* Tracking. Type tightens as it grows: the same letter-spacing that steadies
+     a 13px label makes a 64px headline look loose. */
+  --tracking-wide: 0.06em;
+  --tracking-normal: 0;
+  --tracking-tight: -0.015em;
+  --tracking-tighter: -0.03em;
+  --tracking-display: -0.04em;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.1;
+  --leading-normal: 1.55;
+
+  /* ── Spacing: a 4px scale, nothing between ─────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* ── Radii ─────────────────────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  /* ── Motion. Short, and always interruptible ───────────────────────────── */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --d-fast: 120ms;
+  --d: 180ms;
+  --d-slow: 320ms;
+  /* For an entrance that travels — a hero band, a scroll reveal. Anything an
+     element does to itself under the cursor stays at --d or below. */
+  --d-slower: 620ms;
+
+  /* ── Layout constants ──────────────────────────────────────────────────── */
+  --sidebar-w: 15rem;
+  --topbar-h: 3.5rem;
+  --content-max: 76rem;
+
+  --z-sticky: 10;
+  --z-overlay: 100;
+  --z-toast: 200;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0d1117;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #18223c 0%, transparent 60%);
+  --surface: #161b24;
+  --surface-sunken: #11161e;
+  --surface-hover: #1c222d;
+  --surface-active: #222935;
+  --overlay: rgba(3, 6, 12, 0.66);
+
+  --border: #252c38;
+  --border-strong: #38414f;
+
+  --text: #f0f3f8;
+  --text-muted: #b6c0cf;
+  --text-subtle: #8b96a6;
+  --text-inverse: #0d1117;
+
+  --accent: #7d94ff;
+  --accent-hover: #93a6ff;
+  --accent-active: #a7b6ff;
+  --accent-soft: rgba(125, 148, 255, 0.14);
+  --accent-border: rgba(125, 148, 255, 0.34);
+  --accent-text: #aebcff;
+  --accent-ring: rgba(125, 148, 255, 0.4);
+  --accent-2: #5aa9e6;
+
+  --success: #43c58c;
+  --success-soft: rgba(67, 197, 140, 0.14);
+  --success-border: rgba(67, 197, 140, 0.32);
+  --warning: #e0ac4c;
+  --warning-soft: rgba(224, 172, 76, 0.14);
+  --warning-border: rgba(224, 172, 76, 0.32);
+  --danger: #f3786c;
+  --danger-hover: #f58d83;
+  --danger-soft: rgba(243, 120, 108, 0.14);
+  --danger-border: rgba(243, 120, 108, 0.32);
+  --info: #5aa9e6;
+  --info-soft: rgba(90, 169, 230, 0.14);
+  --info-border: rgba(90, 169, 230, 0.32);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.42), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.36);
+  --shadow-xl: 0 36px 72px -12px rgba(0, 0, 0, 0.66), 0 10px 24px -8px rgba(0, 0, 0, 0.45);
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Palettes
+ *
+ * Eight accents, each declared for both grounds. An application sets
+ * `data-palette` once on <html> (index.html, so it is right before the first
+ * paint) and every surface follows, because every surface was already reading
+ * the semantic name rather than the colour.
+ *
+ * Only the accent ramp moves. Ground, surfaces, text and the status colours
+ * are deliberately shared: status has to mean the same thing in every
+ * application, and a green that drifts with the accent stops reading as
+ * "succeeded".
+ *
+ * `indigo` repeats what `:root` already sets. It is written out anyway so the
+ * attribute is always meaningful and the default is not a special case.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+[data-palette="indigo"] {
+  --accent: #3b5bdb;
+  --accent-hover: #314cc0;
+  --accent-active: #2a42a6;
+  --accent-soft: #eaeeff;
+  --accent-border: #c3cdfb;
+  --accent-text: #2a42a6;
+  --accent-ring: rgba(59, 91, 219, 0.35);
+  --accent-2: #0f6fbe;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #e9edff 0%, transparent 60%);
+}
+
+[data-palette="emerald"] {
+  --accent: #0f9268;
+  --accent-hover: #0b7a57;
+  --accent-active: #096547;
+  --accent-soft: #e4f7ef;
+  --accent-border: #aee4cf;
+  --accent-text: #0a6b4d;
+  --accent-ring: rgba(15, 146, 104, 0.35);
+  --accent-2: #0d8a8a;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #ddf5ec 0%, transparent 60%);
+}
+
+[data-palette="violet"] {
+  --accent: #7c3aed;
+  --accent-hover: #6b2bd9;
+  --accent-active: #5b21b6;
+  --accent-soft: #f1e9ff;
+  --accent-border: #d6c2fb;
+  --accent-text: #5b21b6;
+  --accent-ring: rgba(124, 58, 237, 0.35);
+  --accent-2: #c026d3;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #efe6ff 0%, transparent 60%);
+}
+
+[data-palette="amber"] {
+  --accent: #b45309;
+  --accent-hover: #964407;
+  --accent-active: #7c3a06;
+  --accent-soft: #fdf1dc;
+  --accent-border: #f2d49f;
+  --accent-text: #8a4408;
+  --accent-ring: rgba(180, 83, 9, 0.35);
+  --accent-2: #c2410c;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #fdeed6 0%, transparent 60%);
+}
+
+[data-palette="rose"] {
+  --accent: #be123c;
+  --accent-hover: #a30f33;
+  --accent-active: #881337;
+  --accent-soft: #fde8ee;
+  --accent-border: #f7c3d1;
+  --accent-text: #9f0f33;
+  --accent-2: #db2777;
+  --accent-ring: rgba(190, 18, 60, 0.35);
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #fde4ec 0%, transparent 60%);
+}
+
+[data-palette="teal"] {
+  --accent: #0f766e;
+  --accent-hover: #0c6059;
+  --accent-active: #0a504a;
+  --accent-soft: #e0f5f2;
+  --accent-border: #a6ddd6;
+  --accent-text: #0d6058;
+  --accent-ring: rgba(15, 118, 110, 0.35);
+  --accent-2: #0e7490;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #d9f3ef 0%, transparent 60%);
+}
+
+[data-palette="cyan"] {
+  --accent: #0891b2;
+  --accent-hover: #0e7490;
+  --accent-active: #155e75;
+  --accent-soft: #e2f4fa;
+  --accent-border: #a5dcea;
+  --accent-text: #0e6e88;
+  --accent-ring: rgba(8, 145, 178, 0.35);
+  --accent-2: #2563eb;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #ddf1fa 0%, transparent 60%);
+}
+
+[data-palette="slate"] {
+  --accent: #475569;
+  --accent-hover: #3b4759;
+  --accent-active: #334155;
+  --accent-soft: #eef1f5;
+  --accent-border: #cbd3de;
+  --accent-text: #3b4759;
+  --accent-ring: rgba(71, 85, 105, 0.35);
+  --accent-2: #0f766e;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #e8ecf2 0%, transparent 60%);
+}
+
+/* The dark ground of each palette. Lifted and desaturated, because an accent
+   that carries a button on white is unreadable on #0d1117. */
+
+[data-theme="dark"][data-palette="indigo"] {
+  --accent: #7d94ff;
+  --accent-hover: #93a6ff;
+  --accent-active: #a7b6ff;
+  --accent-soft: rgba(125, 148, 255, 0.14);
+  --accent-border: rgba(125, 148, 255, 0.34);
+  --accent-text: #aebcff;
+  --accent-ring: rgba(125, 148, 255, 0.4);
+  --accent-2: #5aa9e6;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #18223c 0%, transparent 60%);
+}
+
+[data-theme="dark"][data-palette="emerald"] {
+  --accent: #3fd09a;
+  --accent-hover: #5cdcac;
+  --accent-active: #7ae6bd;
+  --accent-soft: rgba(63, 208, 154, 0.14);
+  --accent-border: rgba(63, 208, 154, 0.34);
+  --accent-text: #7fe3b9;
+  --accent-ring: rgba(63, 208, 154, 0.4);
+  --accent-2: #3fcfc0;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #10302a 0%, transparent 60%);
+}
+
+[data-theme="dark"][data-palette="violet"] {
+  --accent: #b394ff;
+  --accent-hover: #c3a9ff;
+  --accent-active: #d0bbff;
+  --accent-soft: rgba(179, 148, 255, 0.14);
+  --accent-border: rgba(179, 148, 255, 0.34);
+  --accent-text: #cbb6ff;
+  --accent-ring: rgba(179, 148, 255, 0.4);
+  --accent-2: #e879f9;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #241a3d 0%, transparent 60%);
+}
+
+[data-theme="dark"][data-palette="amber"] {
+  --accent: #f0b25c;
+  --accent-hover: #f5c079;
+  --accent-active: #f8cd93;
+  --accent-soft: rgba(240, 178, 92, 0.14);
+  --accent-border: rgba(240, 178, 92, 0.34);
+  --accent-text: #f6c884;
+  --accent-ring: rgba(240, 178, 92, 0.4);
+  --accent-2: #fb923c;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #352512 0%, transparent 60%);
+}
+
+[data-theme="dark"][data-palette="rose"] {
+  --accent: #fb7698;
+  --accent-hover: #fc8fab;
+  --accent-active: #fda7bd;
+  --accent-soft: rgba(251, 118, 152, 0.14);
+  --accent-border: rgba(251, 118, 152, 0.34);
+  --accent-text: #fd9fb7;
+  --accent-ring: rgba(251, 118, 152, 0.4);
+  --accent-2: #f472b6;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #3a1424 0%, transparent 60%);
+}
+
+[data-theme="dark"][data-palette="teal"] {
+  --accent: #3fcfc0;
+  --accent-hover: #5ddbce;
+  --accent-active: #7ce5da;
+  --accent-soft: rgba(63, 207, 192, 0.14);
+  --accent-border: rgba(63, 207, 192, 0.34);
+  --accent-text: #7fe3d8;
+  --accent-ring: rgba(63, 207, 192, 0.4);
+  --accent-2: #45c3e0;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #0f2f2d 0%, transparent 60%);
+}
+
+[data-theme="dark"][data-palette="cyan"] {
+  --accent: #45c3e0;
+  --accent-hover: #66d0e8;
+  --accent-active: #86dcef;
+  --accent-soft: rgba(69, 195, 224, 0.14);
+  --accent-border: rgba(69, 195, 224, 0.34);
+  --accent-text: #88dcf0;
+  --accent-ring: rgba(69, 195, 224, 0.4);
+  --accent-2: #7d94ff;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #0d2b36 0%, transparent 60%);
+}
+
+[data-theme="dark"][data-palette="slate"] {
+  --accent: #9fb0c7;
+  --accent-hover: #b2c0d3;
+  --accent-active: #c4d0df;
+  --accent-soft: rgba(159, 176, 199, 0.14);
+  --accent-border: rgba(159, 176, 199, 0.34);
+  --accent-text: #c0cddd;
+  --accent-ring: rgba(159, 176, 199, 0.4);
+  --accent-2: #3fcfc0;
+  --bg-tint: radial-gradient(1200px 600px at 15% -10%, #1b222d 0%, transparent 60%);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Design variants
+ *
+ * The second axis on <html> after palette: `data-preset`, `data-density`,
+ * `data-radius` and `data-fonts`, written by useDesign in src/ui/design.ts.
+ * Each preset is a bundle of these values plus a layout per shell; the
+ * attributes below are the overridable parts. The defaults — comfortable,
+ * soft, modern — have no rules at all, because `:root` already declares
+ * them.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* The display voice: which face and weight a heading wears. Body text
+     keeps --font-sans; only headings read these. The defaults are the values
+     the heading rules already had, so a plain document is pixel-identical. */
+  --font-display: var(--font-sans);
+  --display-weight: var(--weight-semibold);
+  --display-hero-weight: var(--weight-black);
+  --display-tracking: var(--tracking-tight);
+  --display-hero-tracking: var(--tracking-display);
+
+  --rail-w: 4.5rem;
+}
+
+[data-density="compact"] {
+  --space-3: 0.625rem;
+  --space-4: 0.875rem;
+  --space-5: 1.25rem;
+  --space-6: 1.75rem;
+  --space-7: 2.5rem;
+  --space-8: 3.5rem;
+  --text-base: 0.8125rem;
+  --topbar-h: 3rem;
+  --sidebar-w: 13.5rem;
+}
+
+[data-density="spacious"] {
+  --space-3: 1rem;
+  --space-4: 1.25rem;
+  --space-5: 1.75rem;
+  --space-6: 2.5rem;
+  --space-7: 3.5rem;
+  --space-8: 5rem;
+  --text-base: 0.9375rem;
+  --topbar-h: 4rem;
+  --sidebar-w: 16.5rem;
+}
+
+[data-radius="sharp"] {
+  --radius-sm: 2px;
+  --radius: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+}
+
+[data-radius="round"] {
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+}
+
+/* The face itself is loaded by useDesign — a missing network degrades to
+   these stacks, which is why they are real stacks and not one name. */
+[data-fonts="editorial"] {
+  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --display-weight: 500;
+  --display-hero-weight: 500;
+  --display-tracking: -0.02em;
+  --text-2xl: 2rem;
+  --text-3xl: 2.6rem;
+  --text-4xl: clamp(2.75rem, 5.5vw, 3.75rem);
+  --text-5xl: clamp(3.5rem, 7.5vw, 5rem);
+}
+
+[data-fonts="geometric"] {
+  --font-sans:
+    "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-sans);
+  --display-weight: 700;
+  --display-hero-weight: 800;
+}
+
+[data-fonts="technical"] {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --display-weight: 600;
+  --display-hero-weight: 700;
+  --display-tracking: -0.03em;
+  --text-2xl: 1.625rem;
+  --text-3xl: 2rem;
+  --text-4xl: clamp(2.25rem, 4.5vw, 3rem);
+  --text-5xl: clamp(2.75rem, 6vw, 4rem);
+}
+
+/* The preset's whole-measure choice: how wide a page's content column runs. */
+[data-preset="editorial"] {
+  --content-max: 66rem;
+}
+
+[data-preset="marketplace"] {
+  --content-max: 80rem;
+}
+
+[data-preset="dashboard"] {
+  --content-max: 92rem;
+}
+
+[data-preset="booking"] {
+  --content-max: 68rem;
+}

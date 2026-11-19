@@ -1,0 +1,11 @@
+**
+!app/
+!app/**
+!pyproject.toml
+!uv.lock
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/__pycache__
+**/*.pyc

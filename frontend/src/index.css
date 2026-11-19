@@ -1,0 +1,13 @@
+/**
+ * The application's only stylesheet entry point.
+ *
+ * Tokens first, then the component layer that consumes them, then the optional
+ * custom theme layer. Screens should need no CSS beyond these: compose the
+ * classes in styles/components.css and the components in src/ui instead.
+ *
+ * If a feature genuinely needs a new rule, add it at the bottom of this file
+ * using tokens — never a raw hex, px size or duration.
+ */
+@import "./styles/tokens.css";
+@import "./styles/components.css";
+@import "./styles/theme.css";
